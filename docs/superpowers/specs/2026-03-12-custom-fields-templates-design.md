@@ -21,11 +21,12 @@ Replace the current startup script generation with a flexible document template 
 | label | String(200) | Display label, e.g. "Area of Expertise" |
 | field_type | Enum | string \| number \| boolean \| enum |
 | entity_type | Enum | agent \| project |
-| options_json | Text (nullable) | JSON array for enum choices, e.g. ["React","Go","Python"] |
+| options_json | Text (nullable) | JSON array for enum choices, e.g. ["React","Go","Python"]. Validated as valid JSON array on create/update. |
 | default_value | String (nullable) | Default value for new entities |
 | required | Boolean | Default false |
 | sort_order | Integer | Display ordering |
 | created_at | DateTime | |
+| updated_at | DateTime | |
 
 #### CustomFieldValue
 
@@ -33,12 +34,11 @@ Replace the current startup script generation with a flexible document template 
 |--------|------|-------|
 | id | Integer PK | |
 | field_id | FK → CustomFieldDefinition | |
-| entity_type | Enum | agent \| project |
-| entity_id | Integer | ID of the agent or project |
+| entity_id | Integer | ID of the agent or project. Entity type is inferred from the field definition's entity_type. |
 | value | Text | Stored as string, cast by field_type |
 | updated_at | DateTime | |
 
-Unique constraint on (field_id, entity_type, entity_id).
+Unique constraint on (field_id, entity_id).
 
 #### DocumentTemplate
 
@@ -93,11 +93,15 @@ DELETE /api/custom-fields/{id}                Delete definition + all values
 ```
 GET    /api/agents/{name}/fields              Get all field values for agent
 PUT    /api/agents/{name}/fields              Set multiple field values (bulk upsert)
+         Body: { "field_name": "value", "field_name2": "value2", ... }
 PUT    /api/agents/{name}/fields/{field}      Set single field value
+         Body: { "value": "..." }
 
 GET    /api/projects/{slug}/fields            Get all field values for project
-PUT    /api/projects/{slug}/fields            Set multiple field values
+PUT    /api/projects/{slug}/fields            Set multiple field values (bulk upsert)
+         Body: { "field_name": "value", ... }
 PUT    /api/projects/{slug}/fields/{field}    Set single field value
+         Body: { "value": "..." }
 ```
 
 ### Document Templates
@@ -137,15 +141,17 @@ POST   /api/templates/{id}/render              Render template
 
 ### Template Variable Namespace
 
+When both `project_slug` and `agent_name` are provided to the render endpoint, the `agent.*` namespace merges fields from both Agent (global) and ProjectAgent (per-project), with ProjectAgent fields taking precedence for overlapping names. The persona's system prompt is included: if `prompt_source` is "override", `{{agent.system_prompt}}` resolves to the ProjectAgent system_prompt; if "append", it resolves to the persona system_prompt + ProjectAgent system_prompt concatenated. If no persona exists, only the ProjectAgent system_prompt is used.
+
 ```
-── Built-in Agent Fields ──
+── Agent Fields (from Agent model) ──
 {{agent.name}}, {{agent.display_name}}, {{agent.role}}
 
-── Built-in Project Fields ──
-{{project.name}}, {{project.slug}}, {{project.description}}, {{project.working_dir}}
-
-── Built-in ProjectAgent Fields ──
+── Agent Fields (from ProjectAgent model, override Agent if overlapping) ──
 {{agent.system_prompt}}, {{agent.initial_task}}, {{agent.model}}, {{agent.runtime}}
+
+── Project Fields ──
+{{project.name}}, {{project.slug}}, {{project.description}}, {{project.working_dir}}
 
 ── Custom Fields ──
 {{agent.fields.<name>}}, {{project.fields.<name>}}
@@ -158,7 +164,7 @@ POST   /api/templates/{id}/render              Render template
 
 ### Custom Field Validation
 
-- **string** — any text, optional max length
+- **string** — any text, no max length constraint (keep it simple)
 - **number** — must parse as float/int
 - **boolean** — "true"/"false" stored, rendered as true/false
 - **enum** — value must be in options_json list
@@ -168,7 +174,7 @@ POST   /api/templates/{id}/render              Render template
 
 - **On save** — extract all {{variables}}, warn if any don't match known fields (soft warning, not blocking)
 - **On render** — return unresolved list so UI can highlight missing data
-- **Name uniqueness** — unique per scope (global names unique globally, project names unique per project)
+- **Name uniqueness** — enforced via unique constraint on `(name, project_id)` where `project_id` is null for global templates. Global template names are unique globally, project template names are unique within their project.
 
 ## Error Handling
 
@@ -225,10 +231,10 @@ Project sidebar gains a "Documents" entry between Issues and Agents. Script gene
 ## Migration Path
 
 1. Alembic migration: add CustomFieldDefinition, CustomFieldValue, DocumentTemplate tables
-2. Alembic migration: add `runtime` and `extra_flags` to ProjectAgent, drop `skip_permissions`
+2. Alembic migration: add `runtime` and `extra_flags` to ProjectAgent, drop `skip_permissions`, and migrate existing `skip_permissions=true` → `extra_flags: {"skip_permissions": true}` in the same revision
 3. Seed a default "Claude Code Startup Script" global template (porting current scriptGenerator logic)
-4. Delete `scriptGenerator.ts`, update AgentManager, add new pages
-5. Migrate existing `skip_permissions=true` → `extra_flags: {"skip_permissions": true}`
+4. Extract file download utilities (`downloadFile`, `downloadZip`, `saveFilesToDisk`, `hasFileSystemAccess`) from `scriptGenerator.ts` to `frontend/src/lib/fileUtils.ts`
+5. Delete `scriptGenerator.ts`, update AgentManager, add new pages (Documents page imports utilities from `fileUtils.ts`)
 
 ## Implementation Scope
 
@@ -255,6 +261,10 @@ Project sidebar gains a "Documents" entry between Issues and Agents. Script gene
 - `frontend/src/App.tsx` — new routes
 - `src/agora/db/models/project_agent.py` — runtime + extra_flags
 
+### Extracted Files
+
+- `frontend/src/lib/fileUtils.ts` — file download utilities extracted from scriptGenerator.ts
+
 ### Deleted Files
 
-- `frontend/src/lib/scriptGenerator.ts`
+- `frontend/src/lib/scriptGenerator.ts` — after extracting utilities to fileUtils.ts
