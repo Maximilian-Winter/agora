@@ -74,7 +74,8 @@ Each **project** has a working directory, chat rooms for discussion, an issue tr
 Requires Python 3.11+ and Node.js 18+ (for the dashboard).
 
 ```bash
-cd agora-v2
+git clone https://github.com/Maximilian-Winter/agora.git
+cd agora
 pip install -e .
 ```
 
