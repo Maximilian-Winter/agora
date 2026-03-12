@@ -1,0 +1,178 @@
+.page {
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--space-xl);
+  max-width: 900px;
+}
+
+/* ─── Empty state actions ─── */
+.emptyActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.registryLink {
+  color: var(--accent-blue);
+  font-size: 13px;
+}
+
+/* ─── List header ─── */
+.listHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+}
+
+.listCount {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.listActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+/* ─── Agent Name & Meta ─── */
+.agentName {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-bright);
+}
+
+.agentMeta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+/* ─── Project Agent Card ─── */
+.agentCard {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.agentCardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  cursor: pointer;
+}
+
+.expandIcon {
+  font-size: 10px;
+  color: var(--text-muted);
+  width: 12px;
+  transition: transform var(--transition-fast);
+}
+
+.expandIconOpen {
+  transform: rotate(90deg);
+}
+
+.cardActions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+/* ─── Config Panel (expanded) ─── */
+.configPanel {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.configGrid3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.configActions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 12px;
+  margin-top: var(--space-sm);
+}
+
+.checkRow input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-red);
+}
+
+/* ─── Launch Section ─── */
+.launchGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.launchActions {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.saveStatus {
+  font-size: 12px;
+  margin-left: var(--space-xs);
+}
+
+/* ─── Script Preview ─── */
+.previewTabs {
+  display: flex;
+  gap: var(--space-xs);
+  margin: var(--space-lg) 0 var(--space-md);
+  flex-wrap: wrap;
+}
+
+.preBlock {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  padding: var(--space-lg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  white-space: pre;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* ─── Form ─── */
+.formFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.formActions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+}
+
+.error {
+  color: var(--accent-red);
+  font-size: 12px;
+}
