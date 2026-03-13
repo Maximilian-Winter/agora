@@ -171,3 +171,50 @@ export interface RenderResponse {
   rendered_content: string;
   unresolved_variables: string[];
 }
+
+// Knowledge Base
+export interface KBDocument {
+  id: number;
+  project_id: number;
+  path: string;
+  title: string;
+  tags: string | null;
+  content: string;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface KBDocumentSummary {
+  path: string;
+  title: string;
+  tags: string | null;
+  updated_by: string;
+  updated_at: string;
+}
+
+export interface KBSearchResult {
+  path: string;
+  title: string;
+  snippet: string;
+  rank: number;
+}
+
+export interface KBTreeNode {
+  name: string;
+  path?: string;
+  title?: string;
+  children?: KBTreeNode[];
+}
+
+// Mentions
+export interface MentionRef {
+  id: number;
+  source_type: string;
+  source_id: number;
+  mention_type: string;
+  target_path: string | null;
+  target_issue_number: number | null;
+  created_at: string;
+}
