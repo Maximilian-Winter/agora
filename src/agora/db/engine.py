@@ -25,6 +25,7 @@ from agora.db.models import (  # noqa: F401
     Team,
     TeamMember,
     issue_labels,
+    KBDocument,
 )
 
 engine = create_async_engine(settings.database_url, echo=settings.debug)

@@ -6,6 +6,7 @@ from .chat import Room, RoomMember, Message, Reaction, ReadReceipt
 from .task import Issue, IssueComment, IssueActivity, Label, Milestone, IssueDependency, issue_labels
 from .custom_field import CustomFieldDefinition, CustomFieldValue
 from .template import DocumentTemplate
+from .kb_document import KBDocument
 
 __all__ = [
     "Project",
@@ -30,4 +31,5 @@ __all__ = [
     "CustomFieldDefinition",
     "CustomFieldValue",
     "DocumentTemplate",
+    "KBDocument",
 ]
