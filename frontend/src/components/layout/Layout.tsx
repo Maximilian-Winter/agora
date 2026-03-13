@@ -53,6 +53,8 @@ export default function Layout() {
               <NavItem to={`/projects/${slug}/overview`} icon="📋" label="Overview" />
               <NavItem to={`/projects/${slug}/chat`} icon="💬" label="Chat" />
               <NavItem to={`/projects/${slug}/issues`} icon="🐛" label="Issues" />
+              <NavItem to={`/projects/${slug}/documents`} icon="📄" label="Documents" />
+              <NavItem to={`/projects/${slug}/kb`} icon="📚" label="Knowledge Base" />
               <NavItem to={`/projects/${slug}/agents`} icon="⚙" label="Config" />
               <NavItem to={`/projects/${slug}/terminals`} icon="🖥" label="Terminals" />
             </>
