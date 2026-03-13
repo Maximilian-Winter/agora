@@ -7,6 +7,7 @@ from .task import Issue, IssueComment, IssueActivity, Label, Milestone, IssueDep
 from .custom_field import CustomFieldDefinition, CustomFieldValue
 from .template import DocumentTemplate
 from .kb_document import KBDocument
+from .mention import Mention
 
 __all__ = [
     "Project",
@@ -32,4 +33,5 @@ __all__ = [
     "CustomFieldValue",
     "DocumentTemplate",
     "KBDocument",
+    "Mention",
 ]
