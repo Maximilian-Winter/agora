@@ -41,6 +41,8 @@ export default function Layout() {
         <nav className={styles.nav}>
           <NavItem to="/" icon="📊" label="Dashboard" end />
           <NavItem to="/agents" icon="🤖" label="Agents" />
+          <NavItem to="/custom-fields" icon="🗂" label="Custom Fields" />
+          <NavItem to="/templates" icon="📄" label="Templates" />
 
           {/* Project navigation — only when inside a project */}
           {slug && (
