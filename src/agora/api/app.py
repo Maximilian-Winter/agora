@@ -54,6 +54,7 @@ def create_app() -> FastAPI:
     from agora.api.routes.project_agents import router as project_agents_router
     from agora.api.routes.terminals import router as terminals_router
     from agora.api.routes.custom_fields import definitions_router, agent_fields_router, project_fields_router
+    from agora.api.routes.templates import global_templates_router, project_templates_router
 
     app.include_router(projects_router)
     app.include_router(agents_router)
@@ -70,6 +71,8 @@ def create_app() -> FastAPI:
     app.include_router(definitions_router)
     app.include_router(agent_fields_router)
     app.include_router(project_fields_router)
+    app.include_router(global_templates_router)
+    app.include_router(project_templates_router)
 
     # Serve React frontend build (production)
     from pathlib import Path
