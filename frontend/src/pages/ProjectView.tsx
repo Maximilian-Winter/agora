@@ -9,6 +9,7 @@ const TABS = [
   { path: 'chat', label: 'Chat' },
   { path: 'issues', label: 'Issues' },
   { path: 'documents', label: 'Documents' },
+  { path: 'kb', label: 'Knowledge Base' },
   { path: 'agents', label: 'Agents' },
   { path: 'terminals', label: 'Terminals' },
   { path: 'settings', label: 'Settings' },

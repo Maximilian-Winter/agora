@@ -12,6 +12,8 @@ import ProjectSettings from './pages/ProjectSettings';
 import CustomFieldsAdmin from './pages/CustomFieldsAdmin';
 import TemplatesPage from './pages/TemplatesPage';
 import DocumentsPage from './pages/DocumentsPage';
+import KnowledgeBase from './pages/KnowledgeBase';
+import KBEditor from './pages/KBEditor';
 export default function App() {
   return (
     <BrowserRouter>
@@ -30,6 +32,9 @@ export default function App() {
             <Route path="issues/:number" element={<TaskDetail />} />
             <Route path="agents" element={<AgentManager />} />
             <Route path="documents" element={<DocumentsPage />} />
+            <Route path="kb" element={<KnowledgeBase />} />
+            <Route path="kb/new" element={<KBEditor />} />
+            <Route path="kb/edit/*" element={<KBEditor />} />
             <Route path="terminals" element={null} />
             <Route path="settings" element={<ProjectSettings />} />
           </Route>
