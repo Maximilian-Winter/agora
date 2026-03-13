@@ -5,6 +5,7 @@ from .project_agent import ProjectAgent
 from .chat import Room, RoomMember, Message, Reaction, ReadReceipt
 from .task import Issue, IssueComment, IssueActivity, Label, Milestone, IssueDependency, issue_labels
 from .custom_field import CustomFieldDefinition, CustomFieldValue
+from .template import DocumentTemplate
 
 __all__ = [
     "Project",
@@ -28,4 +29,5 @@ __all__ = [
     "issue_labels",
     "CustomFieldDefinition",
     "CustomFieldValue",
+    "DocumentTemplate",
 ]
