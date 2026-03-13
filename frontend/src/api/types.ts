@@ -32,7 +32,8 @@ export interface ProjectAgent {
   model: string | null;
   allowed_tools: string | null;
   prompt_source: string; // "append" | "override"
-  skip_permissions: boolean;
+  runtime: string | null;
+  extra_flags: string | null;
   added_at: string;
   // Flattened from agent
   agent_name: string;
@@ -135,5 +136,38 @@ export interface LaunchConfig {
   model: string;
   allowedTools: string;
   promptSource: 'append' | 'override';
-  skipPermissions: boolean;
+  runtime: string | null;
+  extraFlags: string | null;
+}
+
+// Custom Fields
+export interface CustomFieldDefinition {
+  id: number;
+  name: string;
+  label: string;
+  field_type: "string" | "number" | "boolean" | "enum";
+  entity_type: "agent" | "project";
+  options_json: string | null;
+  default_value: string | null;
+  required: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Document Templates
+export interface DocumentTemplate {
+  id: number;
+  name: string;
+  description: string | null;
+  type_tag: string | null;
+  content: string;
+  project_id: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RenderResponse {
+  rendered_content: string;
+  unresolved_variables: string[];
 }
