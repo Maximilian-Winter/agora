@@ -17,6 +17,12 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
+    from agora.seeds.default_templates import seed_default_templates
+    from agora.db.engine import async_session
+
+    async with async_session() as session:
+        await seed_default_templates(session)
+
     if "*" in settings.cors_origins:
         logger.warning(
             "CORS is set to allow ALL origins (['*']). "
