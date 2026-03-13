@@ -10,6 +10,8 @@ import TaskDetail from './pages/TaskDetail';
 import AgentManager from './pages/AgentManager';
 import ProjectSettings from './pages/ProjectSettings';
 import CustomFieldsAdmin from './pages/CustomFieldsAdmin';
+import TemplatesPage from './pages/TemplatesPage';
+import DocumentsPage from './pages/DocumentsPage';
 export default function App() {
   return (
     <BrowserRouter>
@@ -18,6 +20,7 @@ export default function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/agents" element={<AgentRegistry />} />
           <Route path="/custom-fields" element={<CustomFieldsAdmin />} />
+          <Route path="/templates" element={<TemplatesPage />} />
           <Route path="/projects/:slug" element={<ProjectView />}>
             <Route index element={<Navigate to="overview" replace />} />
             <Route path="overview" element={<ProjectOverview />} />
@@ -26,6 +29,7 @@ export default function App() {
             <Route path="issues" element={<TaskBoard />} />
             <Route path="issues/:number" element={<TaskDetail />} />
             <Route path="agents" element={<AgentManager />} />
+            <Route path="documents" element={<DocumentsPage />} />
             <Route path="terminals" element={null} />
             <Route path="settings" element={<ProjectSettings />} />
           </Route>
