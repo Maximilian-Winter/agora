@@ -4,6 +4,7 @@ import { useIssue, useComments, useCreateComment, useUpdateIssue } from '../hook
 import {
   Button, Input, TextArea, Badge, Avatar, EmptyState,
 } from '../components/ui';
+import MentionRenderer from '../components/MentionRenderer';
 import styles from './TaskDetail.module.css';
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -52,7 +53,7 @@ export default function TaskDetail() {
         <h1 className={styles.title}>{issue.title}</h1>
         <div className={styles.issueNumber}>#{issue.number}</div>
 
-        {issue.body && <div className={styles.body}>{issue.body}</div>}
+        {issue.body && <div className={styles.body}><MentionRenderer text={issue.body} /></div>}
 
         <div className={styles.sectionTitle}>
           Comments ({comments?.length ?? 0})
@@ -67,7 +68,7 @@ export default function TaskDetail() {
                 {new Date(c.created_at).toLocaleString()}
               </span>
             </div>
-            <div className={styles.commentBody}>{c.body}</div>
+            <div className={styles.commentBody}><MentionRenderer text={c.body} /></div>
           </div>
         ))}
 
