@@ -23,6 +23,11 @@ async def lifespan(app: FastAPI):
     async with async_session() as session:
         await seed_default_templates(session)
 
+    from agora.services.kb_service import create_fts_table
+
+    async with async_session() as session:
+        await create_fts_table(session)
+
     if "*" in settings.cors_origins:
         logger.warning(
             "CORS is set to allow ALL origins (['*']). "
@@ -61,6 +66,8 @@ def create_app() -> FastAPI:
     from agora.api.routes.terminals import router as terminals_router
     from agora.api.routes.custom_fields import definitions_router, agent_fields_router, project_fields_router
     from agora.api.routes.templates import global_templates_router, project_templates_router
+    from agora.api.routes.kb import router as kb_router
+    from agora.api.routes.mentions import router as mentions_router
 
     app.include_router(projects_router)
     app.include_router(agents_router)
@@ -79,6 +86,8 @@ def create_app() -> FastAPI:
     app.include_router(project_fields_router)
     app.include_router(global_templates_router)
     app.include_router(project_templates_router)
+    app.include_router(kb_router)
+    app.include_router(mentions_router)
 
     # Serve React frontend build (production)
     from pathlib import Path
