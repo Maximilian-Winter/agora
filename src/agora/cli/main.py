@@ -2,10 +2,12 @@ import typer
 from agora.cli.auth import save_session, load_session, clear_session, require_session, api_request
 from agora.cli.chat_commands import chat_app
 from agora.cli.task_commands import tasks_app
+from agora.cli.kb_commands import kb_app
 
 app = typer.Typer(name="agora", help="Agora CLI")
 app.add_typer(chat_app, name="chat", help="Chat commands")
 app.add_typer(tasks_app, name="tasks", help="Task/issue commands")
+app.add_typer(kb_app, name="kb", help="Knowledge base commands")
 
 @app.command()
 def login(
