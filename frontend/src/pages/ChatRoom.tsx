@@ -6,6 +6,7 @@ import { Avatar, Button, EmptyState, Select } from '../components/ui';
 import { MESSAGE_TYPES, TYPE_COLORS, senderColor, formatTime, canGroup } from '../lib/chat';
 import { cx } from '../lib/cx';
 import type { Message } from '../api/types';
+import MentionRenderer from '../components/MentionRenderer';
 import styles from './ChatRoom.module.css';
 
 /* ─── Message Bubble (Discord-style: flat, grouped) ─── */
@@ -53,7 +54,7 @@ function MessageBubble({
           <span className={styles.replyTag}>replying to #{msg.reply_to}</span>
         )}
         {msg.to && <span className={styles.mentionTag}>@{msg.to}</span>}
-        {msg.content}
+        <MentionRenderer text={msg.content} />
         {msg.reactions && msg.reactions.length > 0 && (
           <div className={styles.reactions}>
             {msg.reactions.map((r) => (
