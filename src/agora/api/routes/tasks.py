@@ -35,6 +35,7 @@ from agora.schemas.task import (
     DependencyCreate,
     DependencyOut,
 )
+from agora.services.mention_service import store_mentions
 from agora.services.task_service import (
     create_issue as svc_create_issue,
     update_issue as svc_update_issue,
@@ -150,6 +151,9 @@ async def create_issue(
     issue = await svc_create_issue(project.id, body, db)
     await db.commit()
     await db.refresh(issue)
+    if issue.body:
+        await store_mentions(project.id, "issue_body", issue.id, issue.body, db)
+        await db.commit()
     return await _issue_to_out(issue, db)
 
 
@@ -244,6 +248,9 @@ async def update_issue(
     issue = await svc_update_issue(issue, body, actor, db)
     await db.commit()
     await db.refresh(issue)
+    if body.body is not None:
+        await store_mentions(project.id, "issue_body", issue.id, body.body, db)
+        await db.commit()
     return await _issue_to_out(issue, db)
 
 
@@ -280,6 +287,8 @@ async def add_comment(
     await log_activity(issue.id, body.author, "commented", None, db)
     await db.commit()
     await db.refresh(comment)
+    await store_mentions(project.id, "issue_comment", comment.id, body.body, db)
+    await db.commit()
     return comment
 
 

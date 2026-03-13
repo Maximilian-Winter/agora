@@ -34,6 +34,7 @@ from agora.schemas.chat import (
     ThreadedResponse,
     RoomSummary,
 )
+from agora.services.mention_service import store_mentions
 from agora.services.chat_service import (
     build_message_out,
     ensure_membership,
@@ -213,6 +214,9 @@ async def post_message(
     await db.commit()
     await db.refresh(msg, ["reactions"])
 
+    await store_mentions(project.id, "message", msg.id, body.content, db)
+    await db.commit()
+
     out = build_message_out(msg)
 
     # Update presence and clear typing
@@ -303,6 +307,10 @@ async def edit_message(
     msg.edited_at = datetime.now(timezone.utc)
 
     await db.commit()
+
+    await store_mentions(project.id, "message", msg.id, body.content, db)
+    await db.commit()
+
     await db.refresh(msg, ["reactions"])
 
     out = build_message_out(msg)
