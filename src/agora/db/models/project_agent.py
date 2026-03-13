@@ -27,9 +27,8 @@ class ProjectAgent(Base):
     prompt_source = Column(
         String(20), nullable=False, default="append"
     )  # "append" (--append-system-prompt) or "override" (--system-prompt)
-    skip_permissions = Column(
-        Integer, nullable=False, default=0
-    )  # 1 = --dangerously-skip-permissions
+    runtime = Column(String(50), nullable=True)  # e.g. "claude-code", "aider", "custom"
+    extra_flags = Column(Text, nullable=True)  # JSON object for runtime-agnostic flags
 
     added_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 

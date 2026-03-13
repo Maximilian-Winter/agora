@@ -13,7 +13,8 @@ class ProjectAgentAdd(BaseModel):
     model: Optional[str] = Field(None, max_length=100)
     allowed_tools: Optional[str] = None
     prompt_source: str = Field("append", pattern=r"^(append|override)$")
-    skip_permissions: bool = False
+    runtime: Optional[str] = Field(None, max_length=50)
+    extra_flags: Optional[str] = None  # JSON string
 
 
 class ProjectAgentUpdate(BaseModel):
@@ -25,7 +26,8 @@ class ProjectAgentUpdate(BaseModel):
     model: Optional[str] = Field(None, max_length=100)
     allowed_tools: Optional[str] = None
     prompt_source: Optional[str] = Field(None, pattern=r"^(append|override)$")
-    skip_permissions: Optional[bool] = None
+    runtime: Optional[str] = Field(None, max_length=50)
+    extra_flags: Optional[str] = None
 
 
 class ProjectAgentOut(BaseModel):
@@ -40,7 +42,8 @@ class ProjectAgentOut(BaseModel):
     model: Optional[str]
     allowed_tools: Optional[str]
     prompt_source: str
-    skip_permissions: bool
+    runtime: Optional[str]
+    extra_flags: Optional[str]
     added_at: datetime
     # Flattened agent fields
     agent_name: str

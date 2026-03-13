@@ -30,7 +30,7 @@ def _to_out(pa: ProjectAgent) -> ProjectAgentOut:
         model=pa.model,
         allowed_tools=pa.allowed_tools,
         prompt_source=pa.prompt_source,
-        skip_permissions=bool(pa.skip_permissions),
+        runtime=pa.runtime, extra_flags=pa.extra_flags,
         added_at=pa.added_at,
         agent_name=pa.agent.name,
         agent_display_name=pa.agent.display_name,
@@ -71,7 +71,7 @@ async def add_agent_to_project(
         model=body.model,
         allowed_tools=body.allowed_tools,
         prompt_source=body.prompt_source,
-        skip_permissions=1 if body.skip_permissions else 0,
+        runtime=body.runtime, extra_flags=body.extra_flags,
     )
     db.add(pa)
     await db.commit()
@@ -145,8 +145,6 @@ async def update_project_agent(
         raise HTTPException(404, f"Agent '{agent_name}' is not in project '{project_slug}'")
 
     update_data = body.model_dump(exclude_unset=True)
-    if "skip_permissions" in update_data:
-        update_data["skip_permissions"] = 1 if update_data["skip_permissions"] else 0
     for key, value in update_data.items():
         setattr(pa, key, value)
 
