@@ -60,7 +60,6 @@ function ScopeBadge({ scope }: { scope: 'global' | 'project' }) {
 
 function TemplateRow({
   template,
-  slug,
   onEdit,
   onDelete,
   onGenerate,
@@ -69,7 +68,6 @@ function TemplateRow({
   isDeleting,
 }: {
   template: DocumentTemplate;
-  slug: string;
   onEdit: (t: DocumentTemplate) => void;
   onDelete: (id: number) => void;
   onGenerate: (t: DocumentTemplate) => void;
@@ -339,7 +337,6 @@ export default function DocumentsPage() {
             <TemplateRow
               key={t.id}
               template={t}
-              slug={slug}
               onEdit={openEdit}
               onDelete={handleDelete}
               onGenerate={openGenerate}

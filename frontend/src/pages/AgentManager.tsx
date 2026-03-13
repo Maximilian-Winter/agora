@@ -335,7 +335,6 @@ function EditAgentModal({
 }) {
   const { data: existingFields } = useAgentFields(pa.agent_name);
 
-  const [runtime, setRuntime] = useState(pa.runtime ?? '');
   const [customRuntime, setCustomRuntime] = useState(
     pa.runtime && !RUNTIME_OPTIONS.some((o) => o.value === pa.runtime) ? pa.runtime : '',
   );
@@ -364,12 +363,10 @@ function EditAgentModal({
 
   const handleRuntimeChange = (e: ChangeEvent<HTMLSelectElement>) => {
     setRuntimeMode(e.target.value);
-    if (e.target.value !== '__custom__') setRuntime(e.target.value);
   };
 
   const handleCustomRuntimeChange = (e: ChangeEvent<HTMLInputElement>) => {
     setCustomRuntime(e.target.value);
-    setRuntime(e.target.value);
   };
 
   const handleCustomFieldChange = (name: string, value: string) => {

@@ -20,6 +20,7 @@ export function useAddProjectAgent(slug: string | undefined) {
       model?: string;
       allowed_tools?: string;
       prompt_source?: string;
+      runtime?: string;
       skip_permissions?: boolean;
     }) =>
       apiFetch<ProjectAgent>(`/projects/${slug}/agents`, {
