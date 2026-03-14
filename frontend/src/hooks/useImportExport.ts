@@ -46,6 +46,10 @@ export function useImportProject(slug: string | undefined) {
       qc.invalidateQueries({ queryKey: ['issues', slug] });
       qc.invalidateQueries({ queryKey: ['rooms', slug] });
       qc.invalidateQueries({ queryKey: ['agents'] });
+      qc.invalidateQueries({ queryKey: ['kb-docs', slug] });
+      qc.invalidateQueries({ queryKey: ['kb-tree', slug] });
+      qc.invalidateQueries({ queryKey: ['kb-doc', slug] });
+      qc.invalidateQueries({ queryKey: ['kb-search', slug] });
     },
   });
 }

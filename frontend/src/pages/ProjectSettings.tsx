@@ -97,7 +97,7 @@ export default function ProjectSettings() {
         <Section title="Data Management">
           <div className={styles.dataBlock}>
             <div className={styles.dataTitle}>Export Project Data</div>
-            <div className={styles.dataDesc}>Download all data (rooms, issues, agents) as JSON.</div>
+            <div className={styles.dataDesc}>Download all data (rooms, issues, agents, knowledge base, templates, custom fields) as JSON.</div>
             <Button size="sm" onClick={() => exportProject.mutate()} loading={exportProject.isPending}>
               Export
             </Button>

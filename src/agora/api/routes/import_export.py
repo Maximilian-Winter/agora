@@ -14,7 +14,11 @@ from agora.db.models.chat import Message, Reaction, Room
 from agora.db.models.enums import IssueState, MessageType, Priority
 from agora.db.models.project import Project
 from agora.db.models.task import Issue, IssueComment, Label
+from agora.db.models.kb_document import KBDocument
+from agora.db.models.template import DocumentTemplate
+from agora.db.models.custom_field import CustomFieldDefinition, CustomFieldValue
 from agora.api.deps import require_project
+from agora.services.kb_service import fts_insert
 
 router = APIRouter(
     prefix="/api/projects/{slug}",
@@ -82,6 +86,41 @@ def _serialize_issue(issue: Issue) -> dict[str, Any]:
         "reporter": issue.reporter,
         "labels": [label.name for label in issue.labels],
         "comments": [_serialize_comment(c) for c in sorted(issue.comments, key=lambda c: c.id)],
+    }
+
+
+def _serialize_kb_document(doc: KBDocument) -> dict[str, Any]:
+    return {
+        "path": doc.path,
+        "title": doc.title,
+        "tags": doc.tags,
+        "content": doc.content,
+        "created_by": doc.created_by,
+        "updated_by": doc.updated_by,
+        "created_at": doc.created_at.isoformat() if doc.created_at else None,
+        "updated_at": doc.updated_at.isoformat() if doc.updated_at else None,
+    }
+
+
+def _serialize_template(tmpl: DocumentTemplate) -> dict[str, Any]:
+    return {
+        "name": tmpl.name,
+        "description": tmpl.description,
+        "type_tag": tmpl.type_tag,
+        "content": tmpl.content,
+    }
+
+
+def _serialize_custom_field(field: CustomFieldDefinition) -> dict[str, Any]:
+    return {
+        "name": field.name,
+        "label": field.label,
+        "field_type": field.field_type,
+        "entity_type": field.entity_type,
+        "options_json": field.options_json,
+        "default_value": field.default_value,
+        "required": field.required,
+        "sort_order": field.sort_order,
     }
 
 
@@ -153,6 +192,54 @@ async def export_project(
             for a in agents
         ]
 
+    # Load KB documents
+    kb_result = await db.execute(
+        select(KBDocument)
+        .where(KBDocument.project_id == project.id)
+        .order_by(KBDocument.path)
+    )
+    kb_docs = kb_result.scalars().all()
+
+    # Load project-scoped templates
+    templates_result = await db.execute(
+        select(DocumentTemplate)
+        .where(DocumentTemplate.project_id == project.id)
+        .order_by(DocumentTemplate.name)
+    )
+    templates = templates_result.scalars().all()
+
+    # Load custom field definitions and values for project agents
+    fields_result = await db.execute(
+        select(CustomFieldDefinition).order_by(CustomFieldDefinition.sort_order)
+    )
+    fields = fields_result.scalars().all()
+
+    custom_fields_out = []
+    for field in fields:
+        field_data = _serialize_custom_field(field)
+        # Include values for this field
+        values_result = await db.execute(
+            select(CustomFieldValue).where(CustomFieldValue.field_id == field.id)
+        )
+        values = values_result.scalars().all()
+        if values:
+            # For agent fields, resolve agent names; for project fields, resolve project slugs
+            field_values = []
+            for v in values:
+                if field.entity_type == "agent":
+                    agent_result = await db.execute(select(Agent).where(Agent.id == v.entity_id))
+                    agent = agent_result.scalar_one_or_none()
+                    if agent:
+                        field_values.append({"entity_name": agent.name, "value": v.value})
+                elif field.entity_type == "project":
+                    proj_result = await db.execute(select(Project).where(Project.id == v.entity_id))
+                    proj = proj_result.scalar_one_or_none()
+                    if proj:
+                        field_values.append({"entity_name": proj.slug, "value": v.value})
+            if field_values:
+                field_data["values"] = field_values
+        custom_fields_out.append(field_data)
+
     return {
         "project": {
             "name": project.name,
@@ -162,6 +249,9 @@ async def export_project(
         "agents": agents_out,
         "rooms": [_serialize_room(r) for r in rooms],
         "issues": [_serialize_issue(i) for i in issues],
+        "kb_documents": [_serialize_kb_document(d) for d in kb_docs],
+        "templates": [_serialize_template(t) for t in templates],
+        "custom_fields": custom_fields_out if custom_fields_out else [],
         "exported_at": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -189,6 +279,13 @@ async def import_project(
         "issues_created": 0,
         "issues_skipped": 0,
         "comments_created": 0,
+        "kb_documents_created": 0,
+        "kb_documents_skipped": 0,
+        "templates_created": 0,
+        "templates_skipped": 0,
+        "custom_fields_created": 0,
+        "custom_fields_skipped": 0,
+        "custom_field_values_set": 0,
     }
 
     # --- Import agents ---
@@ -361,6 +458,156 @@ async def import_project(
             )
             db.add(comment)
             summary["comments_created"] += 1
+
+    # --- Import KB documents ---
+    for kb_data in data.get("kb_documents", []):
+        path = kb_data.get("path")
+        if not path:
+            continue
+
+        existing = await db.execute(
+            select(KBDocument).where(
+                and_(KBDocument.path == path, KBDocument.project_id == project.id)
+            )
+        )
+        if existing.scalar_one_or_none():
+            summary["kb_documents_skipped"] += 1
+            continue
+
+        created_at = None
+        if kb_data.get("created_at"):
+            try:
+                created_at = datetime.fromisoformat(kb_data["created_at"])
+            except (ValueError, TypeError):
+                created_at = None
+
+        updated_at = None
+        if kb_data.get("updated_at"):
+            try:
+                updated_at = datetime.fromisoformat(kb_data["updated_at"])
+            except (ValueError, TypeError):
+                updated_at = None
+
+        doc = KBDocument(
+            project_id=project.id,
+            path=path,
+            title=kb_data.get("title", path),
+            tags=kb_data.get("tags"),
+            content=kb_data.get("content", ""),
+            created_by=kb_data.get("created_by", "import"),
+            updated_by=kb_data.get("updated_by", "import"),
+            created_at=created_at or datetime.now(timezone.utc),
+            updated_at=updated_at or datetime.now(timezone.utc),
+        )
+        db.add(doc)
+        await db.flush()
+        summary["kb_documents_created"] += 1
+
+        # Sync FTS index
+        await fts_insert(db, doc.id, doc.title, doc.content, doc.tags or "")
+
+    # --- Import project-scoped templates ---
+    for tmpl_data in data.get("templates", []):
+        name = tmpl_data.get("name")
+        if not name:
+            continue
+
+        existing = await db.execute(
+            select(DocumentTemplate).where(
+                and_(DocumentTemplate.name == name, DocumentTemplate.project_id == project.id)
+            )
+        )
+        if existing.scalar_one_or_none():
+            summary["templates_skipped"] += 1
+            continue
+
+        tmpl = DocumentTemplate(
+            name=name,
+            description=tmpl_data.get("description"),
+            type_tag=tmpl_data.get("type_tag"),
+            content=tmpl_data.get("content", ""),
+            project_id=project.id,
+        )
+        db.add(tmpl)
+        summary["templates_created"] += 1
+
+    await db.flush()
+
+    # --- Import custom fields ---
+    for field_data in data.get("custom_fields", []):
+        field_name = field_data.get("name")
+        entity_type = field_data.get("entity_type")
+        if not field_name or not entity_type:
+            continue
+
+        existing = await db.execute(
+            select(CustomFieldDefinition).where(
+                and_(
+                    CustomFieldDefinition.name == field_name,
+                    CustomFieldDefinition.entity_type == entity_type,
+                )
+            )
+        )
+        field = existing.scalar_one_or_none()
+        if field:
+            summary["custom_fields_skipped"] += 1
+        else:
+            field = CustomFieldDefinition(
+                name=field_name,
+                label=field_data.get("label", field_name),
+                field_type=field_data.get("field_type", "string"),
+                entity_type=entity_type,
+                options_json=field_data.get("options_json"),
+                default_value=field_data.get("default_value"),
+                required=field_data.get("required", False),
+                sort_order=field_data.get("sort_order", 0),
+            )
+            db.add(field)
+            await db.flush()
+            summary["custom_fields_created"] += 1
+
+        # Import field values
+        for val_data in field_data.get("values", []):
+            entity_name = val_data.get("entity_name")
+            value = val_data.get("value")
+            if not entity_name or value is None:
+                continue
+
+            # Resolve entity ID
+            entity_id = None
+            if entity_type == "agent":
+                agent_result = await db.execute(select(Agent).where(Agent.name == entity_name))
+                agent = agent_result.scalar_one_or_none()
+                if agent:
+                    entity_id = agent.id
+            elif entity_type == "project":
+                proj_result = await db.execute(select(Project).where(Project.slug == entity_name))
+                proj = proj_result.scalar_one_or_none()
+                if proj:
+                    entity_id = proj.id
+
+            if entity_id is None:
+                continue
+
+            # Upsert field value
+            existing_val = await db.execute(
+                select(CustomFieldValue).where(
+                    and_(
+                        CustomFieldValue.field_id == field.id,
+                        CustomFieldValue.entity_id == entity_id,
+                    )
+                )
+            )
+            if existing_val.scalar_one_or_none():
+                continue  # skip existing values
+
+            fv = CustomFieldValue(
+                field_id=field.id,
+                entity_id=entity_id,
+                value=str(value),
+            )
+            db.add(fv)
+            summary["custom_field_values_set"] += 1
 
     await db.commit()
 
